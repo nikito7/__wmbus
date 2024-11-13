@@ -26,6 +26,7 @@ std::set<int> diehl_manufacturers = {
     MANUFACTURER_DME,
     MANUFACTURER_EWT,
     MANUFACTURER_HYD,
+    MANUFACTURER_MAD,
     MANUFACTURER_SAP,
     MANUFACTURER_SPL
 };
@@ -76,6 +77,10 @@ DiehlFrameInterpretation detectDiehlFrameInterpretation(uchar c_field, int m_fie
             case 0xA0: // Manufacturer specific
             case 0xA1: // Manufacturer specific
             case 0xA2: // Manufacturer specific
+                if (m_field == MANUFACTURER_MAD)
+                {
+                    return DiehlFrameInterpretation::PRIOS;
+                }   
             case 0xA3: // Manufacturer specific
             case 0xA4: // Manufacturer specific
             case 0xA5: // Manufacturer specific
@@ -167,8 +172,8 @@ void transformDiehlAddress(vector<uchar>& frame, DiehlAddressTransformMethod tra
 vector<uchar> decodeDiehlLfsr(const vector<uchar>& origin, const vector<uchar>& frame, uint32_t key, DiehlLfsrCheckMethod check_method, uint32_t check_value)
 {
     // modify seed key with header values
-    key ^= uint32FromBytes(origin, 2); // manufacturer + address[0-1]
-    key ^= uint32FromBytes(origin, 6); // address[2-3] + version + type
+    key ^= uint32FromBytes(frame, 2); // manufacturer + address[0-1]
+    key ^= uint32FromBytes(frame, 6); // address[2-3] + version + type
     key ^= uint32FromBytes(frame, 10); // ci + some more bytes from the telegram...
 
     int size = frame.size() - 15;
